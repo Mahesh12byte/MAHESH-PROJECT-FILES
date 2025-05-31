@@ -1,0 +1,83 @@
+// App.jsx
+import { useEffect, useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+
+export default function App() {
+  const [tickets, setTickets] = useState(null);
+  const [status, setStatus] = useState("idle");
+
+  useEffect(() => {
+    fetch("/api/raffle-status?userId=123")
+      .then((res) => res.json())
+      .then((data) => {
+        setTickets(data.tickets);
+      })
+      .catch(() => setStatus("error"));
+  }, []);
+
+  const handleEntry = () => {
+    setStatus("loading");
+    fetch("/api/raffle-entry", { method: "POST" })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setTickets(data.tickets);
+          setStatus("success");
+        } else {
+          setStatus("error");
+        }
+      })
+      .catch(() => setStatus("error"));
+  };
+
+  return (
+    <div className="min-h-screen bg-[var(--neutral-bg)] text-[var(--accent-color)] font-lora p-4 md:p-12">
+      <head>
+        <title>Istanbul Lore – Discover the Untold Stories</title>
+        <meta
+          name="description"
+          content="Explore the enchanting legends and hidden gems of Istanbul with curated tales from the city’s rich history."
+        />
+      </head>
+
+      <div className="max-w-4xl mx-auto space-y-10">
+        <header className="text-center">
+          <h1 className="font-playfair text-4xl text-[var(--primary-color)] mb-4">Istanbul Lore</h1>
+          <p className="text-lg italic">Discover the Untold Stories</p>
+        </header>
+
+        <Card className="rounded-2xl shadow-md bg-white p-6 animate-fade-slide">
+          <CardContent>
+            <p>
+              Beneath Istanbul’s bustling avenues lie stories that whisper through time—legends of
+              emperors, mystics, and clandestine love. Our curation brings them to life.
+            </p>
+            <p className="mt-4">
+              Each tale is a window into Istanbul’s soul, blending East and West, myth and memory.
+              Join us as we journey beyond the landmarks into the lore.
+            </p>
+          </CardContent>
+        </Card>
+
+        <aside className="text-center">
+          <Button
+            className="bg-[var(--primary-color)] text-white rounded-full px-6 py-2 hover:opacity-90 transition"
+            onClick={handleEntry}
+          >
+            Join the Raffle
+          </Button>
+          <div className="mt-4 text-sm">
+            {status === "error" ? (
+              <span className="text-red-600">❌ Error, try again.</span>
+            ) : tickets !== null ? (
+              <span className="text-green-700">✅ You have {tickets} tickets</span>
+            ) : (
+              <span>Loading...</span>
+            )}
+          </div>
+        </aside>
+      </div>
+    </div>
+  );
+}
